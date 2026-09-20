@@ -67,6 +67,9 @@ int vsscanf(const char *str, const char *fmt, va_list ap);
 int fscanf(FILE *stream, const char *fmt, ...);
 int vfscanf(FILE *stream, const char *fmt, va_list ap);
 
+int fileno(FILE *stream);
+FILE *fdopen(int fd, const char *mode);
+
 #endif
 
 #endif

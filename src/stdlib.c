@@ -96,8 +96,40 @@ long long atoll(const char *str)
 
 double atof(const char *str)
 {
-    (void)str;
-    return 0.0;
+    while (*str == ' ' || *str == '\t' || *str == '\n') str++;
+    int sign = 1;
+    if (*str == '-') { sign = -1; str++; }
+    else if (*str == '+') { str++; }
+    double result = 0.0;
+    while (*str >= '0' && *str <= '9') {
+        result = result * 10.0 + (*str - '0');
+        str++;
+    }
+    if (*str == '.') {
+        str++;
+        double frac = 1.0;
+        while (*str >= '0' && *str <= '9') {
+            frac /= 10.0;
+            result += (*str - '0') * frac;
+            str++;
+        }
+    }
+    if (*str == 'e' || *str == 'E') {
+        str++;
+        int exp_sign = 1;
+        if (*str == '-') { exp_sign = -1; str++; }
+        else if (*str == '+') { str++; }
+        int exp = 0;
+        while (*str >= '0' && *str <= '9') {
+            exp = exp * 10 + (*str - '0');
+            str++;
+        }
+        double mult = 1.0;
+        for (int i = 0; i < exp; i++) mult *= 10.0;
+        if (exp_sign < 0) result /= mult;
+        else result *= mult;
+    }
+    return sign * result;
 }
 
 int abs(int j)
@@ -246,4 +278,26 @@ ldiv_t ldiv(long numer, long denom)
     d.quot = numer / denom;
     d.rem = numer % denom;
     return d;
+}
+
+static void (*_atexit_funcs[32])(void);
+static int _atexit_count = 0;
+
+int atexit(void (*func)(void))
+{
+    if (_atexit_count >= 32) return -1;
+    _atexit_funcs[_atexit_count++] = func;
+    return 0;
+}
+
+char *getenv(const char *name)
+{
+    (void)name;
+    return NULL;
+}
+
+int system(const char *command)
+{
+    (void)command;
+    return -1;
 }

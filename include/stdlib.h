@@ -32,6 +32,11 @@ unsigned long long strtoull(const char *nptr, char **endptr, int base);
 int rand(void);
 void srand(unsigned int seed);
 
+int atexit(void (*func)(void));
+void *bsearch(const void *key, const void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *));
+char *getenv(const char *name);
+int system(const char *command);
+
 #endif
 
 #endif

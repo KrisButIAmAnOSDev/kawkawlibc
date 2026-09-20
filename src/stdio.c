@@ -479,3 +479,21 @@ int vfscanf(FILE *stream, const char *fmt, va_list ap)
     buf[i] = '\0';
     return vsscanf(buf, fmt, ap);
 }
+
+int fileno(FILE *stream)
+{
+    return stream->fd;
+}
+
+FILE *fdopen(int fd, const char *mode)
+{
+    (void)mode;
+    static FILE _fdopen_file;
+    _fdopen_file.fd = fd;
+    _fdopen_file.mode = 0;
+    _fdopen_file.eof = 0;
+    _fdopen_file.error = 0;
+    _fdopen_file.has_pushback = 0;
+    _fdopen_file.pushback = 0;
+    return &_fdopen_file;
+}
