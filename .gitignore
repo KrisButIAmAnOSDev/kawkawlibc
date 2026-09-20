@@ -1,3 +1,4 @@
+.config
 *.o
 *.a
 tests/hello
@@ -16,3 +17,5 @@ nyon
 nyon.c
 testfile.txt
 libkawkaw.a
+AGENTS.md
+code.md
