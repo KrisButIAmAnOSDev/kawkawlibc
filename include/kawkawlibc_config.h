@@ -65,4 +65,20 @@
 #define ENABLE_EASTER 1
 #endif
 
+#ifndef ENABLE_WCHAR
+#define ENABLE_WCHAR 1
+#endif
+
+#ifndef ENABLE_WCTYPE
+#define ENABLE_WCTYPE 1
+#endif
+
+#ifndef ENABLE_LOCALE
+#define ENABLE_LOCALE 1
+#endif
+
+#ifndef ENABLE_MATH
+#define ENABLE_MATH 1
+#endif
+
 #endif

@@ -24,14 +24,14 @@ struct timespec {
     long tv_nsec;
 };
 
-struct itimerval {
-    struct timeval it_interval;
-    struct timeval it_value;
-};
-
 struct timeval {
     time_t tv_sec;
     suseconds_t tv_usec;
+};
+
+struct itimerval {
+    struct timeval it_interval;
+    struct timeval it_value;
 };
 
 #define CLOCKS_PER_SEC 1000000

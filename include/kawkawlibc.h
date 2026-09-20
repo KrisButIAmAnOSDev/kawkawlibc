@@ -24,14 +24,6 @@ __attribute__((__noreturn__)) void exit(int code);
 void *brk(void *addr);
 void *sbrk(intptr_t increment);
 
-/* File access flags (Linux x86-64; change per kernel) */
-#define O_RDONLY   0
-#define O_WRONLY   1
-#define O_RDWR     2
-#define O_CREAT  0100
-#define O_TRUNC  01000
-#define O_APPEND 02000
-
 /* lseek whence */
 #define SEEK_SET 0
 #define SEEK_CUR 1

@@ -28,6 +28,22 @@ ifeq ($(ENABLE_ASSERT),1)
 LIB_OBJ += src/assert.o
 endif
 
+ifeq ($(ENABLE_WCHAR),1)
+LIB_OBJ += src/wchar.o
+endif
+
+ifeq ($(ENABLE_WCTYPE),1)
+LIB_OBJ += src/wctype.o
+endif
+
+ifeq ($(ENABLE_LOCALE),1)
+LIB_OBJ += src/locale.o
+endif
+
+ifeq ($(ENABLE_MATH),1)
+LIB_OBJ += src/math.o
+endif
+
 .PHONY: all clean run run-full full verified menuconfig config
 
 all: libkawkaw.a tests/all
@@ -63,6 +79,18 @@ src/ctype.o: src/ctype.c include/ctype.h include/kawkawlibc.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 src/assert.o: src/assert.c include/assert.h include/string.h include/stdio.h include/stdlib.h include/kawkawlibc.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+src/wchar.o: src/wchar.c include/wchar.h include/wctype.h include/string.h include/kawkawlibc.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+src/wctype.o: src/wctype.c include/wctype.h include/wchar.h include/string.h include/kawkawlibc.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+src/locale.o: src/locale.c include/locale.h include/kawkawlibc.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+src/math.o: src/math.c include/math.h include/kawkawlibc.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 tests/all.o: tests/all.c libkawkaw.a
@@ -125,4 +153,4 @@ config:
 	@cat .config
 
 clean:
-	rm -f libkawkaw.a $(LIB_OBJ) src/easter.o tests/all.o tests/all tests/hello.o tests/hello tests/stdio.o tests/stdio tests/headers.o tests/headers tests/verify.o tests/verify tests/stdlib.o tests/stdlib tests/more.o tests/more tests/easter.o tests/easter tests/ctype.o tests/ctype tests/errno.o tests/errno tests/inttypes.o tests/inttypes tests/assert.o tests/assert
+	rm -f libkawkaw.a $(LIB_OBJ) src/easter.o tests/all.o tests/all tests/hello.o tests/hello tests/stdio.o tests/stdio tests/headers.o tests/headers tests/verify.o tests/verify tests/stdlib.o tests/stdlib tests/more.o tests/more tests/easter.o tests/easter tests/ctype.o tests/ctype tests/errno.o tests/errno tests/inttypes.o tests/inttypes tests/assert.o tests/assert src/wchar.o src/wctype.o src/locale.o src/math.o

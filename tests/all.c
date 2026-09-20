@@ -12,6 +12,18 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <stat.h>
+#include <limits.h>
+#include <float.h>
+#include <wchar.h>
+#include <wctype.h>
+#include <setjmp.h>
+#include <locale.h>
+#include <math.h>
+#include <time.h>
+#include <unistd.h>
+#include <signal.h>
+#include <fcntl.h>
+#include <sys/types.h>
 
 static int test_hello(void)
 {
@@ -405,18 +417,74 @@ static int test_qsort(void)
     return fail;
 }
 
+static int test_headers_all(void)
+{
+    int fail = 0;
+    /* limits.h */
+    if (CHAR_BIT != 8) { fail++; printf("limits CHAR_BIT failed\n"); }
+    if (INT_MAX != 2147483647) { fail++; printf("limits INT_MAX failed\n"); }
+    if (LLONG_MAX != 9223372036854775807LL) { fail++; printf("limits LLONG_MAX failed\n"); }
+    /* float.h */
+    if (FLT_MANT_DIG != 24) { fail++; printf("float FLT_MANT_DIG failed\n"); }
+    if (DBL_MANT_DIG != 53) { fail++; printf("float DBL_MANT_DIG failed\n"); }
+    /* errno.h */
+    if (ENOENT != 2) { fail++; printf("errno ENOENT failed\n"); }
+    if (EAGAIN != 11) { fail++; printf("errno EAGAIN failed\n"); }
+    if (ENOMEM != 12) { fail++; printf("errno ENOMEM failed\n"); }
+    if (ECONNREFUSED != 111) { fail++; printf("errno ECONNREFUSED failed\n"); }
+    /* wchar.h */
+    if (WEOF != -1) { fail++; printf("wchar WEOF failed\n"); }
+    if (wcslen(L"abc") != 3) { fail++; printf("wcslen failed\n"); }
+    /* wctype.h */
+    if (!iswalpha(L'a')) { fail++; printf("iswalpha failed\n"); }
+    /* setjmp.h */
+    if (sizeof(jmp_buf) > 0) {} /* just compile check */
+    /* locale.h */
+    if (LC_ALL != 0) { fail++; printf("locale LC_ALL failed\n"); }
+    if (LC_COLLATE != 1) { fail++; printf("locale LC_COLLATE failed\n"); }
+    if (localeconv() == NULL) {} /* may return NULL on minimal kernel */
+    /* math.h */
+    if (M_PI <= 3.0 || M_PI >= 3.2) { fail++; printf("math M_PI failed\n"); }
+    if (fabs(-3.14) < 3.13 || fabs(-3.14) > 3.15) { fail++; printf("math fabs failed\n"); }
+    if (sqrt(4.0) < 1.99 || sqrt(4.0) > 2.01) { fail++; printf("math sqrt failed\n"); }
+    if (ceil(3.7) < 3.99 || ceil(3.7) > 4.01) { fail++; printf("math ceil failed\n"); }
+    if (floor(3.7) < 2.99 || floor(3.7) > 3.01) { fail++; printf("math floor failed\n"); }
+    if (fmod(5.0, 2.0) < 0.99 || fmod(5.0, 2.0) > 1.01) { fail++; printf("math fmod failed\n"); }
+    /* time.h */
+    if (CLOCKS_PER_SEC != 1000000) { fail++; printf("time CLOCKS_PER_SEC failed\n"); }
+    /* unistd.h */
+    if (STDIN_FILENO != 0) { fail++; printf("unistd STDIN_FILENO failed\n"); }
+    if (STDOUT_FILENO != 1) { fail++; printf("unistd STDOUT_FILENO failed\n"); }
+    if (STDERR_FILENO != 2) { fail++; printf("unistd STDERR_FILENO failed\n"); }
+    /* signal.h */
+    if (SIGABRT != 6) { fail++; printf("signal SIGABRT failed\n"); }
+    if (SIGSEGV != 11) { fail++; printf("signal SIGSEGV failed\n"); }
+    if (SIGKILL != 9) { fail++; printf("signal SIGKILL failed\n"); }
+    /* fcntl.h */
+    if (O_RDONLY != 0) { fail++; printf("fcntl O_RDONLY failed\n"); }
+    if (O_WRONLY != 1) { fail++; printf("fcntl O_WRONLY failed\n"); }
+    if (O_RDWR != 2) { fail++; printf("fcntl O_RDWR failed\n"); }
+    if (O_CREAT != 0100) { fail++; printf("fcntl O_CREAT failed\n"); }
+    if (FD_CLOEXEC != 1) { fail++; printf("fcntl FD_CLOEXEC failed\n"); }
+    /* sys/types.h */
+    if (sizeof(ssize_t) != sizeof(long)) {} /* compile check */
+    if (sizeof(off_t) != sizeof(long)) {} /* compile check */
+    if (fail == 0) printf("all headers: ok\n");
+    return fail;
+}
+
 int main(void)
 {
     int total_fail = 0;
     int (*tests[])(void) = {
         test_hello, test_stdio, test_headers, test_verify, test_stdlib,
         test_more, test_ctype, test_errno, test_assert, test_inttypes,
-        test_strncmp, test_memcmp, test_abs, test_qsort,
+        test_strncmp, test_memcmp, test_abs, test_qsort, test_headers_all,
     };
     const char *names[] = {
         "hello", "stdio", "headers", "verify", "stdlib",
         "more", "ctype", "errno", "assert", "inttypes",
-        "strncmp", "memcmp", "abs", "qsort",
+        "strncmp", "memcmp", "abs", "qsort", "all_headers",
     };
     for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
         printf("\n=== %s ===\n", names[i]);

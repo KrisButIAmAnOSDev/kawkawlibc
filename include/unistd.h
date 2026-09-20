@@ -13,17 +13,6 @@
 #define X_OK 1
 #define F_OK 0
 
-#define F_SETFL  2
-#define F_GETFL  3
-#define F_SETFD  4
-#define F_GETFD  5
-
-#define O_NONBLOCK 04000
-
-#define F_DUPFD  0
-#define F_DUPFD_CLOEXEC 10
-#define F_GETFD   1
-#define F_SETFD   2
 #define F_GETOWN  3
 #define F_SETOWN  4
 #define F_GETLK   5
@@ -51,7 +40,7 @@ int access(const char *pathname, int mode);
 int link(const char *old, const char *new);
 int symlink(const char *target, const char *linkpath);
 ssize_t readlink(const char *path, char *buf, size_t bufsiz);
-char *getcwd(char *buf, size_t size);
+size_t getcwd(char *buf, size_t size);
 pid_t fork(void);
 pid_t getpid(void);
 pid_t getppid(void);
@@ -62,7 +51,6 @@ gid_t getegid(void);
 int execve(const char *path, char *const argv[], char *const envp[]);
 int execv(const char *path, char *const argv[]);
 int execvp(const char *file, char *const argv[]);
-int _exit(int status);
 void _Exit(int status);
 int pause(void);
 int sleep(unsigned int seconds);

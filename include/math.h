@@ -3,11 +3,11 @@
 
 #include "stddef.h"
 
-#define HUGE_VAL   1e10000
-#define HUGE_VALF  1e10000f
-#define HUGE_VALL  1e10000L
+#define HUGE_VAL   1.0e300
+#define HUGE_VALF  1.0e300f
+#define HUGE_VALL  1.0e300L
 
-#define INFINITY   1e10000
+#define INFINITY   1.0e300
 #define NAN        0.0/0.0
 
 #define FP_NAN     0
