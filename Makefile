@@ -19,7 +19,7 @@ ifeq ($(ENABLE_STDIO),1)
 LIB_OBJ += src/stdio.o
 endif
 ifeq ($(ENABLE_MALLOC),1)
-LIB_OBJ += src/stdlib.o
+  LIB_OBJ += src/stdlib.o
 endif
 ifeq ($(ENABLE_CTYPE),1)
 LIB_OBJ += src/ctype.o

@@ -2,10 +2,18 @@
 #include "string.h"
 #include "kawkawlibc.h"
 
+void abort(void)
+{
+    write(2, "abort\n", 6);
+    exit(134);
+}
+
 void *malloc(size_t size)
 {
     static void *heap_end = NULL;
     void *prev;
+
+    if (size == 0) return NULL;
     size_t total = size + (8 - (size % 8)) % 8;
 
     if (heap_end == NULL) {
@@ -72,8 +80,170 @@ long atol(const char *str)
     return result * sign;
 }
 
+long long atoll(const char *str)
+{
+    long long result = 0;
+    int sign = 1;
+    while (*str == ' ') str++;
+    if (*str == '-') { sign = -1; str++; }
+    else if (*str == '+') { str++; }
+    while (*str >= '0' && *str <= '9') {
+        result = result * 10 + (*str - '0');
+        str++;
+    }
+    return result * sign;
+}
+
 double atof(const char *str)
 {
     (void)str;
     return 0.0;
+}
+
+int abs(int j)
+{
+    return j < 0 ? -j : j;
+}
+
+long labs(long j)
+{
+    return j < 0 ? -j : j;
+}
+
+void qsort(void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *))
+{
+    if (nmemb <= 1)
+        return;
+    char *arr = (char *)base;
+    for (size_t i = 1; i < nmemb; i++) {
+        char tmp[size];
+        memcpy(tmp, arr + i * size, size);
+        size_t j = i;
+        while (j > 0 && compar(arr + (j - 1) * size, tmp) > 0) {
+            memcpy(arr + j * size, arr + (j - 1) * size, size);
+            j--;
+        }
+        memcpy(arr + j * size, tmp, size);
+    }
+}
+
+static unsigned int _rand_seed = 1;
+
+int rand(void)
+{
+    _rand_seed = _rand_seed * 1103515245u + 12345u;
+    return (int)((_rand_seed >> 16) & 0x7FFF);
+}
+
+void srand(unsigned int seed)
+{
+    _rand_seed = seed;
+}
+
+static int _digit(int c)
+{
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'z') return c - 'a' + 10;
+    if (c >= 'A' && c <= 'Z') return c - 'A' + 10;
+    return -1;
+}
+
+long strtol(const char *nptr, char **endptr, int base)
+{
+    while (*nptr == ' ' || *nptr == '\t' || *nptr == '\n') nptr++;
+    int sign = 1;
+    if (*nptr == '-') { sign = -1; nptr++; }
+    else if (*nptr == '+') { nptr++; }
+    long result = 0;
+    if (base == 0) {
+        if (*nptr == '0' && (nptr[1] == 'x' || nptr[1] == 'X')) { base = 16; nptr += 2; }
+        else if (*nptr == '0') base = 8;
+        else base = 10;
+    }
+    if (base < 2 || base > 36) base = 10;
+    int d;
+    while ((d = _digit(*nptr)) >= 0 && d < base) {
+        result = result * base + d;
+        nptr++;
+    }
+    if (endptr) *endptr = (char *)nptr;
+    return sign * result;
+}
+
+unsigned long strtoul(const char *nptr, char **endptr, int base)
+{
+    while (*nptr == ' ' || *nptr == '\t' || *nptr == '\n') nptr++;
+    if (*nptr == '+') nptr++;
+    unsigned long result = 0;
+    if (base == 0) {
+        if (*nptr == '0' && (nptr[1] == 'x' || nptr[1] == 'X')) { base = 16; nptr += 2; }
+        else if (*nptr == '0') base = 8;
+        else base = 10;
+    }
+    if (base < 2 || base > 36) base = 10;
+    int d;
+    while ((d = _digit(*nptr)) >= 0 && d < base) {
+        result = result * base + d;
+        nptr++;
+    }
+    if (endptr) *endptr = (char *)nptr;
+    return result;
+}
+
+long long strtoll(const char *nptr, char **endptr, int base)
+{
+    while (*nptr == ' ' || *nptr == '\t' || *nptr == '\n') nptr++;
+    int sign = 1;
+    if (*nptr == '-') { sign = -1; nptr++; }
+    else if (*nptr == '+') { nptr++; }
+    long long result = 0;
+    if (base == 0) {
+        if (*nptr == '0' && (nptr[1] == 'x' || nptr[1] == 'X')) { base = 16; nptr += 2; }
+        else if (*nptr == '0') base = 8;
+        else base = 10;
+    }
+    if (base < 2 || base > 36) base = 10;
+    int d;
+    while ((d = _digit(*nptr)) >= 0 && d < base) {
+        result = result * base + d;
+        nptr++;
+    }
+    if (endptr) *endptr = (char *)nptr;
+    return sign * result;
+}
+
+unsigned long long strtoull(const char *nptr, char **endptr, int base)
+{
+    while (*nptr == ' ' || *nptr == '\t' || *nptr == '\n') nptr++;
+    if (*nptr == '+') nptr++;
+    unsigned long long result = 0;
+    if (base == 0) {
+        if (*nptr == '0' && (nptr[1] == 'x' || nptr[1] == 'X')) { base = 16; nptr += 2; }
+        else if (*nptr == '0') base = 8;
+        else base = 10;
+    }
+    if (base < 2 || base > 36) base = 10;
+    int d;
+    while ((d = _digit(*nptr)) >= 0 && d < base) {
+        result = result * base + d;
+        nptr++;
+    }
+    if (endptr) *endptr = (char *)nptr;
+    return result;
+}
+
+div_t div(int numer, int denom)
+{
+    div_t d;
+    d.quot = numer / denom;
+    d.rem = numer % denom;
+    return d;
+}
+
+ldiv_t ldiv(long numer, long denom)
+{
+    ldiv_t d;
+    d.quot = numer / denom;
+    d.rem = numer % denom;
+    return d;
 }

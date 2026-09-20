@@ -1,7 +1,10 @@
 #ifndef KAWKAW_ASSERT_H
 #define KAWKAW_ASSERT_H
 
+#include "kawkawlibc_config.h"
 #include "stdnoreturn.h"
+
+#if ENABLE_ASSERT
 
 noreturn void assert_fail(const char *assertion, const char *file, int line, const char *func);
 
@@ -10,5 +13,7 @@ noreturn void assert_fail(const char *assertion, const char *file, int line, con
 
 #define assert_perror(expr) \
     ((expr) ? (void)0 : (fprintf(stderr, "%s: %d: %s: %s\n", __FILE__, __LINE__, #expr, strerror(errno)), exit(1)))
+
+#endif
 
 #endif

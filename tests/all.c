@@ -98,8 +98,6 @@ static int test_stdio(void)
     return 0;
 }
 
-static noreturn void die(void) { exit(1); }
-
 static int sum(int count, ...)
 {
     va_list ap;
@@ -339,17 +337,86 @@ static int test_inttypes(void)
     return fail;
 }
 
+static int test_strncmp(void)
+{
+    int fail = 0;
+    if (strncmp("abc", "abc", 3) != 0) { fail++; printf("strncmp equal failed\n"); }
+    if (strncmp("abc", "abd", 3) >= 0) { fail++; printf("strncmp diff failed\n"); }
+    if (strncmp("abc", "abcde", 3) != 0) { fail++; printf("strncmp prefix failed\n"); }
+    if (strncmp("abcd", "abc", 4) <= 0) { fail++; printf("strncmp longer failed\n"); }
+    if (strncmp("", "", 1) != 0) { fail++; printf("strncmp empty failed\n"); }
+    if (fail == 0) printf("strncmp: ok\n");
+    return fail;
+}
+
+static int test_memcmp(void)
+{
+    int fail = 0;
+    char a[] = {1, 2, 3, 4, 5};
+    char b[] = {1, 2, 3, 4, 5};
+    char c[] = {1, 2, 3, 4, 6};
+    if (memcmp(a, b, 5) != 0) { fail++; printf("memcmp equal failed\n"); }
+    if (memcmp(a, c, 5) >= 0) { fail++; printf("memcmp diff failed\n"); }
+    if (memcmp(a, c, 3) != 0) { fail++; printf("memcmp prefix same failed\n"); }
+    if (memcmp(a, c, 4) != 0) { fail++; printf("memcmp prefix 4 same failed\n"); }
+    if (memcmp(a, b, 0) != 0) { fail++; printf("memcmp zero failed\n"); }
+    if (fail == 0) printf("memcmp: ok\n");
+    return fail;
+}
+
+static int test_abs(void)
+{
+    int fail = 0;
+    if (abs(5) != 5) { fail++; printf("abs positive failed\n"); }
+    if (abs(-5) != 5) { fail++; printf("abs negative failed\n"); }
+    if (abs(0) != 0) { fail++; printf("abs zero failed\n"); }
+    if (abs(-2147483647) != 2147483647) { fail++; printf("abs min failed\n"); }
+    if (fail == 0) printf("abs: ok\n");
+    return fail;
+}
+
+static int int_cmp(const void *a, const void *b)
+{
+    int ia = *(const int *)a;
+    int ib = *(const int *)b;
+    return (ia > ib) - (ia < ib);
+}
+
+static int test_qsort(void)
+{
+    int fail = 0;
+    int arr[] = {5, 3, 8, 1, 9, 2, 7, 4, 6};
+    int expected[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    qsort(arr, 9, sizeof(int), int_cmp);
+    for (int i = 0; i < 9; i++) {
+        if (arr[i] != expected[i]) {
+            fail++;
+            printf("qsort mismatch at %d: got %d expected %d\n", i, arr[i], expected[i]);
+            break;
+        }
+    }
+    int arr2[] = {42};
+    qsort(arr2, 1, sizeof(int), int_cmp);
+    if (arr2[0] != 42) { fail++; printf("qsort single failed\n"); }
+    int arr3[] = {3, 1, 2};
+    qsort(arr3, 3, sizeof(int), int_cmp);
+    if (arr3[0] != 1 || arr3[1] != 2 || arr3[2] != 3) { fail++; printf("qsort triple failed\n"); }
+    if (fail == 0) printf("qsort: ok\n");
+    return fail;
+}
+
 int main(void)
 {
     int total_fail = 0;
-    const char *name;
     int (*tests[])(void) = {
         test_hello, test_stdio, test_headers, test_verify, test_stdlib,
         test_more, test_ctype, test_errno, test_assert, test_inttypes,
+        test_strncmp, test_memcmp, test_abs, test_qsort,
     };
     const char *names[] = {
         "hello", "stdio", "headers", "verify", "stdlib",
         "more", "ctype", "errno", "assert", "inttypes",
+        "strncmp", "memcmp", "abs", "qsort",
     };
     for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
         printf("\n=== %s ===\n", names[i]);

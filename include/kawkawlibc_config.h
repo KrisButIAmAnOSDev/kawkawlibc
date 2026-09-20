@@ -37,6 +37,10 @@
 #define ENABLE_MALLOC 1
 #endif
 
+#ifndef ENABLE_STDLIB
+#define ENABLE_STDLIB 1
+#endif
+
 #ifndef ENABLE_STRING
 #define ENABLE_STRING 1
 #endif

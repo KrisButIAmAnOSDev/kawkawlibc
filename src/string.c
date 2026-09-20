@@ -67,6 +67,17 @@ void *memmove(void *dest, const void *src, size_t n)
     return dest;
 }
 
+int memcmp(const void *s1, const void *s2, size_t n)
+{
+    const unsigned char *p1 = s1;
+    const unsigned char *p2 = s2;
+    for (size_t i = 0; i < n; i++) {
+        if (p1[i] != p2[i])
+            return (int)(p1[i] - p2[i]);
+    }
+    return 0;
+}
+
 int strcmp(const char *s1, const char *s2)
 {
     size_t i = 0;
@@ -75,6 +86,19 @@ int strcmp(const char *s1, const char *s2)
             return 0;
         i++;
     }
+    return (unsigned char)s1[i] - (unsigned char)s2[i];
+}
+
+int strncmp(const char *s1, const char *s2, size_t n)
+{
+    size_t i = 0;
+    while (i < n && s1[i] == s2[i]) {
+        if (s1[i] == 0)
+            return 0;
+        i++;
+    }
+    if (i == n)
+        return 0;
     return (unsigned char)s1[i] - (unsigned char)s2[i];
 }
 
@@ -165,14 +189,7 @@ char *strerror(int errnum)
             e /= 10;
         }
     }
-    char msg[64] = "Error ";
-    size_t msglen = 7;
-    size_t numlen = 63 - start;
-    for (size_t i = 0; i < numlen; i++)
-        msg[msglen++] = buf[start + i];
-    msg[msglen++] = '\n';
-    write(2, msg, msglen - 1);
-    return buf;
+    return buf + start;
 }
 
 void *memchr(const void *s, int c, size_t n)
@@ -225,6 +242,63 @@ char *strpbrk(const char *s, const char *accept)
     }
     return NULL;
 }
+
+char *strtok_r(char *str, const char *delim, char **saveptr)
+{
+    char *start;
+
+    if (str) *saveptr = str;
+    if (!*saveptr) return NULL;
+
+    while (**saveptr && strchr(delim, **saveptr))
+        (*saveptr)++;
+    if (**saveptr == 0) { *saveptr = NULL; return NULL; }
+
+    start = *saveptr;
+    while (**saveptr && !strchr(delim, **saveptr))
+        (*saveptr)++;
+    if (**saveptr) {
+        **saveptr = 0;
+        (*saveptr)++;
+    } else {
+        *saveptr = NULL;
+    }
+    return start;
+}
+
+size_t strlcpy(char *dst, const char *src, size_t dsize)
+{
+    size_t i;
+    if (dsize == 0) return strlen(src);
+    for (i = 0; i < dsize - 1 && src[i]; i++)
+        dst[i] = src[i];
+    dst[i] = '\0';
+    return strlen(src);
+}
+
+size_t strlcat(char *dst, const char *src, size_t dsize)
+{
+    size_t dlen = 0;
+    size_t slen = strlen(src);
+    while (dlen < dsize && dst[dlen]) dlen++;
+    if (dlen == dsize) return dlen + slen;
+    for (size_t i = 0; i < slen && dlen < dsize - 1; i++)
+        dst[dlen++] = src[i];
+    dst[dlen] = '\0';
+    return dlen + slen;
+}
+
+void *memccpy(void *dst, const void *src, int c, size_t n)
+{
+    char *d = dst;
+    const char *s = src;
+    for (size_t i = 0; i < n; i++) {
+        d[i] = s[i];
+        if (s[i] == (char)c)
+            return (void *)(d + i + 1);
+    }
+    return NULL;
+}
 #endif
 
 #if ENABLE_MALLOC
@@ -234,6 +308,17 @@ char *strdup(const char *s)
     char *copy = malloc(len + 1);
     if (!copy) return NULL;
     strcpy(copy, s);
+    return copy;
+}
+
+char *strndup(const char *s, size_t n)
+{
+    size_t len = 0;
+    while (len < n && s[len]) len++;
+    char *copy = malloc(len + 1);
+    if (!copy) return NULL;
+    memcpy(copy, s, len);
+    copy[len] = '\0';
     return copy;
 }
 #endif

@@ -18,7 +18,33 @@ typedef unsigned long      size_t;
 typedef signed long        ptrdiff_t;
 
 #define NULL ((void *)0)
-#define UINT32_MAX 0xFFFFFFFFu
-#define UINT64_MAX 0xFFFFFFFFFFFFFFFFULL
+
+#define INT8_MIN        (-128)
+#define INT8_MAX        127
+#define UINT8_MAX       255
+#define INT16_MIN       (-32768)
+#define INT16_MAX       32767
+#define UINT16_MAX      65535
+#define INT32_MIN       (-2147483647 - 1)
+#define INT32_MAX       2147483647
+#define UINT32_MAX      0xFFFFFFFFu
+#define INT64_MIN       (-9223372036854775807LL - 1)
+#define INT64_MAX       9223372036854775807LL
+#define UINT64_MAX      0xFFFFFFFFFFFFFFFFULL
+
+#define INTPTR_MIN      INT64_MIN
+#define INTPTR_MAX      INT64_MAX
+#define UINTPTR_MAX     UINT64_MAX
+
+#define INTMAX_MIN      INT64_MIN
+#define INTMAX_MAX      INT64_MAX
+#define UINTMAX_MAX     UINT64_MAX
+
+#define PTRDIFF_MIN     INTPTR_MIN
+#define PTRDIFF_MAX     INTPTR_MAX
+#define SIZE_MAX        UINTPTR_MAX
+
+#define WCHAR_MIN       INT32_MIN
+#define WCHAR_MAX       INT32_MAX
 
 #endif

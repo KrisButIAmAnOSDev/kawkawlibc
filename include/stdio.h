@@ -1,6 +1,9 @@
 #ifndef KAWKAW_STDIO_H
 #define KAWKAW_STDIO_H
 
+#include "kawkawlibc_config.h"
+
+#if ENABLE_STDIO
 #include "kawkawlibc.h"
 #include "stdarg.h"
 #include "stddef.h"
@@ -49,5 +52,21 @@ void clearerr(FILE *stream);
 int fflush(FILE *stream);
 
 void perror(const char *s);
+
+int fgetc(FILE *stream);
+int ftell(FILE *stream);
+int fseek(FILE *stream, long offset, int whence);
+void rewind(FILE *stream);
+void setbuf(FILE *stream, char *buf);
+int setvbuf(FILE *stream, char *buf, int mode, size_t size);
+int remove(const char *path);
+int rename(const char *old, const char *new);
+
+int sscanf(const char *str, const char *fmt, ...);
+int vsscanf(const char *str, const char *fmt, va_list ap);
+int fscanf(FILE *stream, const char *fmt, ...);
+int vfscanf(FILE *stream, const char *fmt, va_list ap);
+
+#endif
 
 #endif

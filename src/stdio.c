@@ -11,7 +11,6 @@ FILE *stdin = &_stdin;
 FILE *stdout = &_stdout;
 FILE *stderr = &_stderr;
 
-static void put_fd(int fd, const char *s, size_t len) { write(fd, s, len); }
 static void put_char_fd(int fd, char c) { write(fd, &c, 1); }
 
 static void put_uint_fd(int fd, unsigned int val, const char *digits, int base)
@@ -270,4 +269,213 @@ void perror(const char *s)
     else { while (e > 0) { buf[--start] = '0' + (e % 10); e /= 10; } }
     write(2, buf + start, 63 - start);
     write(2, "\n", 1);
+}
+
+int fgetc(FILE *stream)
+{
+    int c = getc(stream);
+    if (c == EOF) return EOF;
+    return c;
+}
+
+int ftell(FILE *stream)
+{
+    return (int)lseek(stream->fd, 0, SEEK_CUR);
+}
+
+int fseek(FILE *stream, long offset, int whence)
+{
+    return (int)lseek(stream->fd, offset, whence);
+}
+
+void rewind(FILE *stream)
+{
+    lseek(stream->fd, 0, SEEK_SET);
+    stream->eof = 0;
+    stream->error = 0;
+}
+
+void setbuf(FILE *stream, char *buf)
+{
+    (void)stream;
+    (void)buf;
+}
+
+int setvbuf(FILE *stream, char *buf, int mode, size_t size)
+{
+    (void)stream;
+    (void)buf;
+    (void)mode;
+    (void)size;
+    return 0;
+}
+
+int remove(const char *path)
+{
+    return (int)syscall(SYS_unlink, path);
+}
+
+int rename(const char *old, const char *new)
+{
+    return (int)syscall(SYS_rename, old, new);
+}
+
+static int _scan_skip_ws(const char **p)
+{
+    int n = 0;
+    while (**p == ' ' || **p == '\t' || **p == '\n' || **p == '\r' || **p == '\v' || **p == '\f') {
+        (*p)++;
+        n++;
+    }
+    return n;
+}
+
+static int _scan_int(const char **p, int base, long *out)
+{
+    int sign = 1;
+    if (**p == '-') { sign = -1; (*p)++; }
+    else if (**p == '+') { (*p)++; }
+    if (base == 0) {
+        if (**p == '0' && ((*p)[1] == 'x' || (*p)[1] == 'X')) { base = 16; (*p) += 2; }
+        else if (**p == '0') base = 8;
+        else base = 10;
+    }
+    long val = 0;
+    int found = 0;
+    while (1) {
+        int d;
+        char c = **p;
+        if (c >= '0' && c <= '9') d = c - '0';
+        else if (c >= 'a' && c <= 'z') d = c - 'a' + 10;
+        else if (c >= 'A' && c <= 'Z') d = c - 'A' + 10;
+        else break;
+        if (d >= base) break;
+        val = val * base + d;
+        (*p)++;
+        found = 1;
+    }
+    if (!found) return 0;
+    *out = sign * val;
+    return 1;
+}
+
+int vsscanf(const char *str, const char *fmt, va_list ap)
+{
+    int assigned = 0;
+    const char *p = str;
+    for (const char *f = fmt; *f; f++) {
+        if (*f == ' ') continue;
+        if (*f != '%') {
+            _scan_skip_ws(&p);
+            if (*p != *f) return assigned;
+            p++;
+            continue;
+        }
+        f++;
+        switch (*f) {
+        case 'd': {
+            _scan_skip_ws(&p);
+            long v;
+            if (_scan_int(&p, 10, &v)) {
+                *va_arg(ap, int *) = (int)v;
+                assigned++;
+            } else return assigned;
+            break;
+        }
+        case 'u': {
+            _scan_skip_ws(&p);
+            long v;
+            if (_scan_int(&p, 10, &v)) {
+                *va_arg(ap, unsigned int *) = (unsigned int)v;
+                assigned++;
+            } else return assigned;
+            break;
+        }
+        case 'x': {
+            _scan_skip_ws(&p);
+            long v;
+            if (_scan_int(&p, 16, &v)) {
+                *va_arg(ap, unsigned int *) = (unsigned int)v;
+                assigned++;
+            } else return assigned;
+            break;
+        }
+        case 's': {
+            _scan_skip_ws(&p);
+            char *dst = va_arg(ap, char *);
+            int i = 0;
+            while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r')
+                dst[i++] = *p++;
+            dst[i] = '\0';
+            if (i > 0) assigned++;
+            else return assigned;
+            break;
+        }
+        case 'c': {
+            _scan_skip_ws(&p);
+            *va_arg(ap, char *) = *p++;
+            assigned++;
+            break;
+        }
+        case 'f': {
+            _scan_skip_ws(&p);
+            int sign = 1;
+            if (*p == '-') { sign = -1; p++; }
+            else if (*p == '+') { p++; }
+            double val = 0.0;
+            while (*p >= '0' && *p <= '9') { val = val * 10.0 + (*p - '0'); p++; }
+            if (*p == '.') {
+                p++;
+                double frac = 1.0;
+                while (*p >= '0' && *p <= '9') { frac /= 10.0; val += (*p - '0') * frac; p++; }
+            }
+            *va_arg(ap, double *) = sign * val;
+            assigned++;
+            break;
+        }
+        case '%':
+            _scan_skip_ws(&p);
+            if (*p != '%') return assigned;
+            p++;
+            break;
+        default:
+            return assigned;
+        }
+    }
+    return assigned;
+}
+
+int sscanf(const char *str, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    int n = vsscanf(str, fmt, ap);
+    va_end(ap);
+    return n;
+}
+
+int fscanf(FILE *stream, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    char buf[1024];
+    int i = 0;
+    int c;
+    while (i < 1023 && (c = getc(stream)) != EOF && c != '\n')
+        buf[i++] = (char)c;
+    buf[i] = '\0';
+    int n = vsscanf(buf, fmt, ap);
+    va_end(ap);
+    return n;
+}
+
+int vfscanf(FILE *stream, const char *fmt, va_list ap)
+{
+    char buf[1024];
+    int i = 0;
+    int c;
+    while (i < 1023 && (c = getc(stream)) != EOF && c != '\n')
+        buf[i++] = (char)c;
+    buf[i] = '\0';
+    return vsscanf(buf, fmt, ap);
 }
