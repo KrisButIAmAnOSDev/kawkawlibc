@@ -24,6 +24,13 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <complex.h>
+#include <fenv.h>
+#include <iso646.h>
+#include <tgmath.h>
+#include <stdalign.h>
+#include <uchar.h>
+#include <threads.h>
 
 static int test_hello(void)
 {

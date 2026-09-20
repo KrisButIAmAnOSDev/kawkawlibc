@@ -5,6 +5,7 @@
 
 typedef int wint_t;
 typedef int wchar_t;
+typedef int mbstate_t;
 
 #define WEOF (-1)
 
