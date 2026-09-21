@@ -44,10 +44,11 @@ void *calloc(size_t count, size_t size)
 
 void *realloc(void *ptr, size_t size)
 {
+    if (!ptr) return malloc(size);
+    if (size == 0) { free(ptr); return NULL; }
     void *new_p = malloc(size);
-    if (new_p && ptr) {
-        memcpy(new_p, ptr, size);
-    }
+    if (!new_p) return NULL;
+    memcpy(new_p, ptr, size);
     free(ptr);
     return new_p;
 }
@@ -147,8 +148,9 @@ void qsort(void *base, size_t nmemb, size_t size, int (*compar)(const void *, co
     if (nmemb <= 1)
         return;
     char *arr = (char *)base;
+    char *tmp = malloc(size);
+    if (!tmp) return;
     for (size_t i = 1; i < nmemb; i++) {
-        char tmp[size];
         memcpy(tmp, arr + i * size, size);
         size_t j = i;
         while (j > 0 && compar(arr + (j - 1) * size, tmp) > 0) {
@@ -157,6 +159,7 @@ void qsort(void *base, size_t nmemb, size_t size, int (*compar)(const void *, co
         }
         memcpy(arr + j * size, tmp, size);
     }
+    free(tmp);
 }
 
 static unsigned int _rand_seed = 1;
@@ -187,6 +190,7 @@ long strtol(const char *nptr, char **endptr, int base)
     if (*nptr == '-') { sign = -1; nptr++; }
     else if (*nptr == '+') { nptr++; }
     long result = 0;
+    const char *start = nptr;
     if (base == 0) {
         if (*nptr == '0' && (nptr[1] == 'x' || nptr[1] == 'X')) { base = 16; nptr += 2; }
         else if (*nptr == '0') base = 8;
@@ -197,6 +201,10 @@ long strtol(const char *nptr, char **endptr, int base)
     while ((d = _digit(*nptr)) >= 0 && d < base) {
         result = result * base + d;
         nptr++;
+    }
+    if (nptr == start) {
+        if (endptr) *endptr = (char *)(nptr - (sign == -1 ? 1 : 0));
+        return 0;
     }
     if (endptr) *endptr = (char *)nptr;
     return sign * result;
@@ -205,8 +213,11 @@ long strtol(const char *nptr, char **endptr, int base)
 unsigned long strtoul(const char *nptr, char **endptr, int base)
 {
     while (*nptr == ' ' || *nptr == '\t' || *nptr == '\n') nptr++;
-    if (*nptr == '+') nptr++;
+    int sign = 0;
+    if (*nptr == '-') { sign = -1; nptr++; }
+    else if (*nptr == '+') { nptr++; }
     unsigned long result = 0;
+    const char *start = nptr;
     if (base == 0) {
         if (*nptr == '0' && (nptr[1] == 'x' || nptr[1] == 'X')) { base = 16; nptr += 2; }
         else if (*nptr == '0') base = 8;
@@ -218,7 +229,12 @@ unsigned long strtoul(const char *nptr, char **endptr, int base)
         result = result * base + d;
         nptr++;
     }
+    if (nptr == start) {
+        if (endptr) *endptr = (char *)(nptr - (sign == -1 ? 1 : 0));
+        return 0;
+    }
     if (endptr) *endptr = (char *)nptr;
+    if (sign < 0) return 0UL - result;
     return result;
 }
 
@@ -280,6 +296,55 @@ ldiv_t ldiv(long numer, long denom)
     return d;
 }
 
+double strtod(const char *nptr, char **endptr)
+{
+    while (*nptr == ' ' || *nptr == '\t' || *nptr == '\n') nptr++;
+    int sign = 1;
+    if (*nptr == '-') { sign = -1; nptr++; }
+    else if (*nptr == '+') { nptr++; }
+    double result = 0.0;
+    while (*nptr >= '0' && *nptr <= '9') {
+        result = result * 10.0 + (*nptr - '0');
+        nptr++;
+    }
+    if (*nptr == '.') {
+        nptr++;
+        double frac = 1.0;
+        while (*nptr >= '0' && *nptr <= '9') {
+            frac /= 10.0;
+            result += (*nptr - '0') * frac;
+            nptr++;
+        }
+    }
+    if (*nptr == 'e' || *nptr == 'E') {
+        nptr++;
+        int exp_sign = 1;
+        if (*nptr == '-') { exp_sign = -1; nptr++; }
+        else if (*nptr == '+') { nptr++; }
+        int exp = 0;
+        while (*nptr >= '0' && *nptr <= '9') {
+            exp = exp * 10 + (*nptr - '0');
+            nptr++;
+        }
+        double mult = 1.0;
+        for (int i = 0; i < exp; i++) mult *= 10.0;
+        if (exp_sign < 0) result /= mult;
+        else result *= mult;
+    }
+    if (endptr) *endptr = (char *)nptr;
+    return sign * result;
+}
+
+float strtof(const char *nptr, char **endptr)
+{
+    return (float)strtod(nptr, endptr);
+}
+
+long double strtold(const char *nptr, char **endptr)
+{
+    return (long double)strtod(nptr, endptr);
+}
+
 static void (*_atexit_funcs[32])(void);
 static int _atexit_count = 0;
 
@@ -288,6 +353,21 @@ int atexit(void (*func)(void))
     if (_atexit_count >= 32) return -1;
     _atexit_funcs[_atexit_count++] = func;
     return 0;
+}
+
+void *bsearch(const void *key, const void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *))
+{
+    if (nmemb == 0) return NULL;
+    const char *arr = (const char *)base;
+    size_t lo = 0, hi = nmemb;
+    while (lo < hi) {
+        size_t mid = lo + (hi - lo) / 2;
+        int cmp = compar(key, arr + mid * size);
+        if (cmp == 0) return (void *)(arr + mid * size);
+        if (cmp < 0) hi = mid;
+        else lo = mid + 1;
+    }
+    return NULL;
 }
 
 char *getenv(const char *name)

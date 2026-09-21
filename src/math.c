@@ -164,15 +164,55 @@ double cos(double x)
 }
 
 double tan(double x) { return sin(x) / cos(x); }
-double atan(double x) { (void)x; return 0.0; }
-double asin(double x) { (void)x; return 0.0; }
-double acos(double x) { (void)x; return 0.0; }
-double atan2(double y, double x) { (void)y; (void)x; return 0.0; }
-double sinh(double x) { return (exp(x) - exp(-x)) / 2.0; }
-double cosh(double x) { return (exp(x) + exp(-x)) / 2.0; }
-double tanh(double x) { return sinh(x) / cosh(x); }
-double ldexp(double x, int exp) { return x * pow(2.0, (double)exp); }
-double frexp(double x, int *exp) { (void)x; *exp = 0; return 0.0; }
+double atan(double x)
+{
+    double sign = 1.0;
+    if (x < 0) { sign = -1.0; x = -x; }
+    double result = 0.0;
+    double term = x;
+    for (int i = 1; i < 30; i += 2) {
+        double s = ((i / 2) % 2) ? -1.0 : 1.0;
+        result += s * term / i;
+        term *= x * x;
+    }
+    return sign * result;
+}
+
+double asin(double x)
+{
+    if (x <= -1.0) return -1.5707963267948966;
+    if (x >= 1.0) return 1.5707963267948966;
+    double result = 0.0;
+    double term = x;
+    for (int i = 1; i < 30; i += 2) {
+        double s = ((i / 2) % 2) ? -1.0 : 1.0;
+        result += s * term / i;
+        term *= x * x * (i - 1) / (i + 1);
+    }
+    return result;
+}
+
+double acos(double x)
+{
+    return 1.5707963267948966 - asin(x);
+}
+
+double atan2(double y, double x)
+{
+    if (x == 0.0) return (y > 0) ? 1.5707963267948966 : -1.5707963267948966;
+    return atan(y / x);
+}
+
+double frexp(double x, int *exp)
+{
+    if (x == 0.0) { *exp = 0; return 0.0; }
+    int e = 0;
+    double mant = x;
+    while (mant >= 2.0) { mant /= 2.0; e++; }
+    while (mant < 1.0) { mant *= 2.0; e--; }
+    *exp = e;
+    return mant;
+}
 double modf(double x, double *iptr) { *iptr = (double)(long long)x; return x - *iptr; }
 double hypot(double x, double y) { return sqrt(x * x + y * y); }
 

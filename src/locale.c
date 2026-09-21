@@ -29,8 +29,10 @@ static void _init_lconv(void)
 char *setlocale(int category, const char *locale)
 {
     (void)category;
-    (void)locale;
     _init_lconv();
+    if (locale == NULL) return "C";
+    if (locale[0] == 'C' && locale[1] == '\0') return "C";
+    if (locale[0] == '\0') return "C";
     return NULL;
 }
 

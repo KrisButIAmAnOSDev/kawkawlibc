@@ -148,17 +148,15 @@ char *strchr(const char *s, int c)
 
 char *strrchr(const char *s, int c)
 {
-    char *last = NULL;
+    const char *last = NULL;
     while (*s) {
         if (*s == (char)c)
-            last = (char *)s;
+            last = s;
         s++;
     }
-    if (c == 0 && last)
-        return last;
     if (c == 0)
         return (char *)s;
-    return last;
+    return (char *)last;
 }
 
 char *strstr(const char *haystack, const char *needle)

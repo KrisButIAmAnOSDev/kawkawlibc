@@ -14,10 +14,13 @@ ssize_t write(int fd, const void *buf, size_t count)
 
 int open(const char *path, int flags, ...)
 {
-    va_list ap;
-    va_start(ap, flags);
-    int mode = va_arg(ap, int);
-    va_end(ap);
+    int mode = 0;
+    if (flags & O_CREAT) {
+        va_list ap;
+        va_start(ap, flags);
+        mode = va_arg(ap, int);
+        va_end(ap);
+    }
     return syscall(SYS_open, path, flags, mode);
 }
 

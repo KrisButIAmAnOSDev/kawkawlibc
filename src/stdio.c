@@ -15,21 +15,21 @@ FILE *stderr = &_stderr;
 
 static void put_char_fd(int fd, char c) { write(fd, &c, 1); }
 
-static void put_uint_fd(int fd, unsigned int val, const char *digits, int base)
+static void put_uint_fd(int fd, unsigned long long val, const char *digits, int base)
 {
-    char buf[32];
-    char *p = buf + 32;
+    char buf[64];
+    char *p = buf + 64;
     *--p = '\0';
     if (val == 0) { *--p = '0'; }
-    else { while (val > 0) { *--p = digits[val % (unsigned)base]; val /= base; } }
+    else { while (val > 0) { *--p = digits[val % (unsigned long long)base]; val /= base; } }
     write(fd, p, strlen(p));
 }
 
-static void put_int_fd(int fd, long val)
+static void put_int_fd(int fd, long long val)
 {
-    unsigned int uval;
-    if (val < 0) { put_char_fd(fd, '-'); uval = 0 - (unsigned int)val; }
-    else { uval = (unsigned int)val; }
+    unsigned long long uval;
+    if (val < 0) { put_char_fd(fd, '-'); uval = 0 - (unsigned long long)val; }
+    else { uval = (unsigned long long)val; }
     put_uint_fd(fd, uval, "0123456789", 10);
 }
 
@@ -224,8 +224,9 @@ int sprintf(char *str, const char *fmt, ...)
     sbuf_t b; sbuf_init(&b);
     sbuf_format(&b, fmt, ap);
     va_end(ap);
-    if (b.len > 0) memcpy(str, b.data, b.len);
-    str[b.len] = '\0';
+    size_t to_copy = b.len < 64 ? b.len : 63;
+    if (to_copy > 0) memcpy(str, b.data, to_copy);
+    str[to_copy] = '\0';
     return (int)b.len;
 }
 
