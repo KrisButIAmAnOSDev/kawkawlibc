@@ -1,5 +1,4 @@
 #include "kawkawlibc.h"
-#include "stat.h"
 #include <stdarg.h>
 #include "stdnoreturn.h"
 

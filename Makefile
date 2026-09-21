@@ -60,7 +60,7 @@ src/arch/x86_64/entry.o: src/arch/x86_64/entry.S
 src/arch/x86_64/syscall.o: src/arch/x86_64/syscall.S
 	$(ASM) $(ASMFLAGS) -c -o $@ $<
 
-src/syscall.o: src/syscall.c include/kawkawlibc.h include/stat.h
+src/syscall.o: src/syscall.c include/kawkawlibc.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 src/string.o: src/string.c include/string.h include/kawkawlibc.h
