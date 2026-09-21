@@ -119,5 +119,11 @@ int wait4(pid_t pid, int *wstatus, int options, void *rusage);
 #define SYS_statx        332
 #define SYS_exit         60
 #define SYS_exit_group   231
+#define SYS_clone        56
+#define SYS_fork         57
+#define SYS_futex        202
+#define SYS_sched_yield   24
+#define SYS_set_tid_address 218
+#define SYS_gettid       186
 
 #endif

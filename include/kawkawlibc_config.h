@@ -65,6 +65,10 @@
 #define ENABLE_EASTER 1
 #endif
 
+#ifndef ENABLE_THREADS
+#define ENABLE_THREADS 1
+#endif
+
 #ifndef ENABLE_WCHAR
 #define ENABLE_WCHAR 1
 #endif

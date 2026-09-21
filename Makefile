@@ -55,8 +55,12 @@ ifeq ($(ENABLE_SETJMP),1)
 LIB_OBJ += src/setjmp.o src/arch/x86_64/setjmp.o
 endif
 
-ifeq ($(ENABLE_UCHAR),1)
-LIB_OBJ += src/uchar.o
+ifeq ($(ENABLE_THREADS),1)
+LIB_OBJ += src/threads.o
+endif
+
+ifeq ($(ENABLE_EASTER),1)
+  LIB_OBJ += src/easter.o
 endif
 
 .PHONY: all clean run run-full full verified menuconfig config

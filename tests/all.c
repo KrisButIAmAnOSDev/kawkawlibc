@@ -26,10 +26,6 @@
 #include <tgmath.h>
 #include <stdalign.h>
 #include <uchar.h>
-#include <threads.h>
-#include <stdalign.h>
-#include <uchar.h>
-#include <threads.h>
 
 static int test_hello(void)
 {
