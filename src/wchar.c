@@ -176,3 +176,16 @@ int mbstowcs(wchar_t *dst, const char *src, size_t max)
     }
     return (int)i;
 }
+
+int wcscoll(const wchar_t *s1, const wchar_t *s2)
+{
+    return wcscmp(s1, s2);
+}
+
+size_t wcsxfrm(wchar_t *dst, const wchar_t *src, size_t max)
+{
+    size_t len = wcslen(src);
+    if (len > max) len = max;
+    wmemcpy(dst, src, len);
+    return len;
+}

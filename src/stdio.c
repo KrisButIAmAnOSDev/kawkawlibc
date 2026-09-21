@@ -89,6 +89,114 @@ static void format_fd(int fd, const char *fmt, va_list ap)
             }
             break;
         }
+        case 'f':
+        case 'F': {
+            double v = va_arg(ap, double);
+            if (v < 0) { put_char_fd(fd, '-'); v = -v; }
+            long long ip = (long long)v;
+            double frac = v - (double)ip;
+            if (frac < 0) frac = -frac;
+            if (ip == 0) { put_char_fd(fd, '0'); }
+            else {
+                char tmp[32]; int i = 0;
+                unsigned long long u = (unsigned long long)ip;
+                while (u > 0) { tmp[i++] = '0' + u % 10; u /= 10; }
+                while (i > 0) put_char_fd(fd, tmp[--i]);
+            }
+            put_char_fd(fd, '.');
+            for (int k = 0; k < 6; k++) {
+                frac *= 10.0;
+                put_char_fd(fd, '0' + (int)frac);
+                frac -= (int)frac;
+            }
+            break;
+        }
+        case 'e': {
+            double v = va_arg(ap, double);
+            if (v < 0) { put_char_fd(fd, '-'); v = -v; }
+            if (v == 0.0) { write(fd, "0.000000e+00", 13); break; }
+            int exp = 0;
+            while (v >= 10.0) { v /= 10.0; exp++; }
+            while (v < 1.0) { v *= 10.0; exp--; }
+            long long ip = (long long)v;
+            double frac = v - (double)ip;
+            if (ip == 0) put_char_fd(fd, '0');
+            else {
+                char tmp[4]; int i = 0;
+                while (ip > 0) { tmp[i++] = '0' + ip % 10; ip /= 10; }
+                while (i > 0) put_char_fd(fd, tmp[--i]);
+            }
+            put_char_fd(fd, '.');
+            for (int k = 0; k < 6; k++) {
+                frac *= 10.0;
+                put_char_fd(fd, '0' + (int)frac);
+                frac -= (int)frac;
+            }
+            put_char_fd(fd, 'e');
+            if (exp >= 0) put_char_fd(fd, '+');
+            else { put_char_fd(fd, '-'); exp = -exp; }
+            if (exp < 10) put_char_fd(fd, '0');
+            char tmp[4]; int i = 0;
+            while (exp > 0) { tmp[i++] = '0' + exp % 10; exp /= 10; }
+            while (i > 0) put_char_fd(fd, tmp[--i]);
+            break;
+        }
+        case 'g': {
+            double v = va_arg(ap, double);
+            int exp = 0;
+            double av = v < 0 ? -v : v;
+            if (av == 0.0) { write(fd, "0", 1); break; }
+            while (av >= 10.0) { av /= 10.0; exp++; }
+            while (av < 1.0) { av *= 10.0; exp--; }
+            if (exp >= -4 && exp < 6) {
+                if (v < 0) put_char_fd(fd, '-');
+                double x = v < 0 ? -v : v;
+                long long ip = (long long)x;
+                double frac = x - (double)ip;
+                if (ip == 0) put_char_fd(fd, '0');
+                else {
+                    char tmp[32]; int i = 0;
+                    while (ip > 0) { tmp[i++] = '0' + ip % 10; ip /= 10; }
+                    while (i > 0) put_char_fd(fd, tmp[--i]);
+                }
+                int prec = 6 - exp - 1;
+                if (prec > 0) {
+                    put_char_fd(fd, '.');
+                    for (int k = 0; k < prec; k++) {
+                        frac *= 10.0;
+                        put_char_fd(fd, '0' + (int)frac);
+                        frac -= (int)frac;
+                    }
+                }
+            } else {
+                if (v < 0) put_char_fd(fd, '-');
+                double x = v < 0 ? -v : v;
+                while (x >= 10.0) { x /= 10.0; exp++; }
+                while (x < 1.0) { x *= 10.0; exp--; }
+                long long ip = (long long)x;
+                double frac = x - (double)ip;
+                if (ip == 0) put_char_fd(fd, '0');
+                else {
+                    char tmp[4]; int i = 0;
+                    while (ip > 0) { tmp[i++] = '0' + ip % 10; ip /= 10; }
+                    while (i > 0) put_char_fd(fd, tmp[--i]);
+                }
+                put_char_fd(fd, '.');
+                for (int k = 0; k < 5; k++) {
+                    frac *= 10.0;
+                    put_char_fd(fd, '0' + (int)frac);
+                    frac -= (int)frac;
+                }
+                put_char_fd(fd, 'e');
+                if (exp >= 0) put_char_fd(fd, '+');
+                else { put_char_fd(fd, '-'); exp = -exp; }
+                if (exp < 10) put_char_fd(fd, '0');
+                char tmp[4]; int i = 0;
+                while (exp > 0) { tmp[i++] = '0' + exp % 10; exp /= 10; }
+                while (i > 0) put_char_fd(fd, tmp[--i]);
+            }
+            break;
+        }
         case '%': { put_char_fd(fd, '%'); break; }
         default: { put_char_fd(fd, '%'); put_char_fd(fd, *p); break; }
         }
