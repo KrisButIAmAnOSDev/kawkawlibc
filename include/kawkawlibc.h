@@ -89,7 +89,7 @@ int wait4(pid_t pid, int *wstatus, int options, void *rusage);
 #define SYS_gettid       186
 #define SYS_gettimeofday 96
 #define SYS_nanosleep    35
-#define SYS_time         13
+#define SYS_time         201
 #define SYS_clock_gettime 228
 #define SYS_uname        63
 #define SYS_unlink       87

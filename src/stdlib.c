@@ -1,8 +1,16 @@
 #include "stdlib.h"
 #include "string.h"
+#include "stdint.h"
 #include "kawkawlibc.h"
 
 extern char **environ;
+
+typedef struct block {
+    struct block *next;
+    size_t size;
+} block_t;
+
+static block_t *free_list = NULL;
 
 void abort(void)
 {
@@ -18,27 +26,51 @@ void *malloc(size_t size)
     if (size == 0) return NULL;
     size_t total = size + (8 - (size % 8)) % 8;
 
+    /* try to reuse a freed block of sufficient size */
+    block_t **pp = &free_list;
+    while (*pp) {
+        block_t *blk = *pp;
+        if (blk->size >= total) {
+            *pp = blk->next;             /* unlink from free list */
+            if (blk->size >= total + sizeof(block_t) + 16) {
+                /* split: carve off the tail into a new free block */
+                block_t *rem = (block_t *)((char *)blk + total);
+                rem->size = blk->size - total;
+                rem->next = free_list;
+                free_list = rem;
+            }
+            return (void *)(blk + 1);
+        }
+        pp = &blk->next;
+    }
+
     if (heap_end == NULL) {
         heap_end = sbrk(4096);
         if (heap_end == (void *)-1) return NULL;
     }
 
-    while ((char *)heap_end + total > (char *)brk(0)) {
+    while ((char *)heap_end + total + sizeof(block_t) > (char *)brk(0)) {
         if (sbrk(4096) == (void *)-1) return NULL;
     }
 
     prev = heap_end;
-    heap_end = (char *)heap_end + total;
-    return prev;
+    block_t *hdr = (block_t *)prev;
+    hdr->size = total;
+    heap_end = (char *)heap_end + total + sizeof(block_t);
+    return (void *)(hdr + 1);
 }
 
 void free(void *ptr)
 {
-    (void)ptr;
+    if (!ptr) return;
+    block_t *hdr = (block_t *)ptr - 1;
+    hdr->next = free_list;
+    free_list = hdr;
 }
 
 void *calloc(size_t count, size_t size)
 {
+    if (count && SIZE_MAX / count < size) return NULL;   /* overflow guard */
     void *p = malloc(count * size);
     if (p) memset(p, 0, count * size);
     return p;
@@ -48,9 +80,12 @@ void *realloc(void *ptr, size_t size)
 {
     if (!ptr) return malloc(size);
     if (size == 0) { free(ptr); return NULL; }
+    block_t *hdr = (block_t *)ptr - 1;
+    size_t old_size = hdr->size;
+    if (old_size >= size) return ptr;   /* block already big enough */
     void *new_p = malloc(size);
     if (!new_p) return NULL;
-    memcpy(new_p, ptr, size);
+    memcpy(new_p, ptr, old_size);
     free(ptr);
     return new_p;
 }

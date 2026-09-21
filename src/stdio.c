@@ -332,7 +332,7 @@ int sprintf(char *str, const char *fmt, ...)
     sbuf_t b; sbuf_init(&b);
     sbuf_format(&b, fmt, ap);
     va_end(ap);
-    size_t to_copy = b.len < 64 ? b.len : 63;
+    size_t to_copy = b.len < 63 ? b.len : 63;
     if (to_copy > 0) memcpy(str, b.data, to_copy);
     str[to_copy] = '\0';
     return (int)b.len;

@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+void thisishowkawkawlibcworks(void);
+
 int main(void)
 {
     printf("the truly random number chosen by kawkaw is: 4\n");
