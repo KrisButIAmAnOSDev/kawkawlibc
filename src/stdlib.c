@@ -2,6 +2,8 @@
 #include "string.h"
 #include "kawkawlibc.h"
 
+extern char **environ;
+
 void abort(void)
 {
     write(2, "abort\n", 6);
@@ -372,12 +374,26 @@ void *bsearch(const void *key, const void *base, size_t nmemb, size_t size, int 
 
 char *getenv(const char *name)
 {
-    (void)name;
+    extern char **environ;
+    size_t nlen = strlen(name);
+    for (char **e = environ; e && *e; e++) {
+        if (strncmp(*e, name, nlen) == 0 && (*e)[nlen] == '=')
+            return *e + nlen + 1;
+    }
     return NULL;
 }
 
 int system(const char *command)
 {
-    (void)command;
-    return -1;
+    if (!command) return -1;
+    pid_t pid = fork();
+    if (pid < 0) return -1;
+    if (pid == 0) {
+        char *argv[] = {"/bin/sh", (char *)command, NULL};
+        execve("/bin/sh", argv, environ);
+        _exit(127);
+    }
+    int status;
+    wait4(pid, &status, 0, NULL);
+    return status;
 }

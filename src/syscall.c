@@ -50,6 +50,12 @@ noreturn void exit(int code)
     __builtin_unreachable();
 }
 
+void _exit(int code)
+{
+    syscall(SYS_exit, code);
+    __builtin_unreachable();
+}
+
 void *brk(void *addr)
 {
     return (void *)syscall(SYS_brk, (unsigned long)addr);
@@ -63,4 +69,19 @@ void *sbrk(intptr_t increment)
     void *result = brk(new_addr);
     if (result == (void *)-1) return (void *)-1;
     return current;
+}
+
+int fork(void)
+{
+    return syscall(SYS_fork);
+}
+
+int execve(const char *path, char *const argv[], char *const envp[])
+{
+    return syscall(SYS_execve, path, argv, envp);
+}
+
+int wait4(pid_t pid, int *wstatus, int options, void *rusage)
+{
+    return syscall(SYS_wait4, pid, wstatus, options, rusage);
 }

@@ -16,6 +16,7 @@ long atol(const char *str);
 long long atoll(const char *str);
 double atof(const char *str);
 void exit(int code);
+void _exit(int code);
 int abs(int j);
 long labs(long j);
 void qsort(void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *));

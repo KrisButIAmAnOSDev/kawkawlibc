@@ -6,6 +6,9 @@
 
 typedef long ssize_t;
 typedef long off_t;
+typedef int pid_t;
+
+extern char **environ;
 
 struct stat {
     unsigned long  st_dev;
@@ -57,6 +60,9 @@ int stat(const char *path, struct stat *st);
 __attribute__((__noreturn__)) void exit(int code);
 void *brk(void *addr);
 void *sbrk(intptr_t increment);
+int fork(void);
+int execve(const char *path, char *const argv[], char *const envp[]);
+int wait4(pid_t pid, int *wstatus, int options, void *rusage);
 
 /* lseek whence */
 #define SEEK_SET 0

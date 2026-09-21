@@ -1,13 +1,16 @@
 .text
 .global _start
+.global environ
 _start:
     movq (%rsp), %r12
     leaq 8(%rsp), %r13
+    leaq 16(%rsp), %r11
 
     testq $0xF, %rsp
     jz 1f
     subq $8, %rsp
 1:
+    movq %r11, environ
     lea __init_array_start(%rip), %r14
     lea __init_array_end(%rip), %r15
 2:
@@ -19,6 +22,7 @@ _start:
 3:
     movq %r12, %rdi
     movq %r13, %rsi
+    movq %r11, %rdx
     call main
     movl %eax, %r14d
     pushq %r14
@@ -35,3 +39,7 @@ _start:
     popq %r14
     movl %r14d, %edi
     call exit
+
+.data
+environ:
+    .quad 0
