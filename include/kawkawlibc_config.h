@@ -81,4 +81,24 @@
 #define ENABLE_MATH 1
 #endif
 
+#ifndef ENABLE_SIGNAL
+#define ENABLE_SIGNAL 1
+#endif
+
+#ifndef ENABLE_TIME
+#define ENABLE_TIME 1
+#endif
+
+#ifndef ENABLE_FENV
+#define ENABLE_FENV 1
+#endif
+
+#ifndef ENABLE_SETJMP
+#define ENABLE_SETJMP 1
+#endif
+
+#ifndef ENABLE_UCHAR
+#define ENABLE_UCHAR 1
+#endif
+
 #endif

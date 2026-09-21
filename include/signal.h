@@ -41,6 +41,8 @@ typedef unsigned long sigset_t;
 
 #define NSIG 65
 
+int getpid(void);
+
 struct sigaction {
     sighandler_t sa_handler;
     sigset_t sa_mask;

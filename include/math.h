@@ -52,6 +52,12 @@ double ldexp(double x, int exp);
 double frexp(double x, int *exp);
 double modf(double x, double *iptr);
 double hypot(double x, double y);
+float modff(float x, float *iptr);
+float hypotf(float x, float y);
+long double modfl(long double x, long double *iptr);
+long double hypotl(long double x, long double y);
+float ldexpf(float x, int exp);
+long double ldexpl(long double x, int exp);
 double atan2(double y, double x);
 
 float acosf(float x);

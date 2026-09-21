@@ -76,6 +76,11 @@ int fork(void)
     return syscall(SYS_fork);
 }
 
+int getpid(void)
+{
+    return syscall(SYS_getpid);
+}
+
 int execve(const char *path, char *const argv[], char *const envp[])
 {
     return syscall(SYS_execve, path, argv, envp);

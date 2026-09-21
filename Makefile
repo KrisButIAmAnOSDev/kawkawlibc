@@ -36,7 +36,27 @@ LIB_OBJ += src/locale.o
 endif
 
 ifeq ($(ENABLE_MATH),1)
-LIB_OBJ += src/math.o
+LIB_OBJ += src/math.o src/complex.o
+endif
+
+ifeq ($(ENABLE_SIGNAL),1)
+LIB_OBJ += src/signal.o
+endif
+
+ifeq ($(ENABLE_TIME),1)
+LIB_OBJ += src/time.o
+endif
+
+ifeq ($(ENABLE_FENV),1)
+LIB_OBJ += src/fenv.o
+endif
+
+ifeq ($(ENABLE_SETJMP),1)
+LIB_OBJ += src/setjmp.o src/arch/x86_64/setjmp.o
+endif
+
+ifeq ($(ENABLE_UCHAR),1)
+LIB_OBJ += src/uchar.o
 endif
 
 .PHONY: all clean run run-full full verified menuconfig config
@@ -88,6 +108,27 @@ src/locale.o: src/locale.c include/locale.h include/kawkawlibc.h
 src/math.o: src/math.c include/math.h include/kawkawlibc.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+src/complex.o: src/complex.c include/complex.h include/math.h include/kawkawlibc.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+src/signal.o: src/signal.c include/signal.h include/kawkawlibc.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+src/time.o: src/time.c include/time.h include/kawkawlibc.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+src/fenv.o: src/fenv.c include/fenv.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+src/setjmp.o: src/setjmp.c include/setjmp.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+src/arch/x86_64/setjmp.o: src/arch/x86_64/setjmp.S
+	$(ASM) $(ASMFLAGS) -c -o $@ $<
+
+src/uchar.o: src/uchar.c include/uchar.h include/wchar.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 tests/all.o: tests/all.c libkawkaw.a
 	$(CC) $(CFLAGS) -c -o $@ $<
 
@@ -95,7 +136,7 @@ tests/all: tests/all.o libkawkaw.a
 	$(CC) -nostdlib -static -o $@ $< -L. -lkawkaw
 
 tests/easter: src/easter.o tests/easter.o libkawkaw.a
-	$(CC) -nostdlib -static $(if $(filter-out x86_64,$(ARCH)),-m32) -o $@ $^ -L. -lkawkaw
+	$(CC) -nostdlib -static -o $@ $^ -L. -lkawkaw
 
 src/easter.o: src/easter.c
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -148,4 +189,4 @@ config:
 	@cat .config
 
 clean:
-	rm -f libkawkaw.a $(LIB_OBJ) src/easter.o tests/all.o tests/all tests/hello.o tests/hello tests/stdio.o tests/stdio tests/headers.o tests/headers tests/verify.o tests/verify tests/stdlib.o tests/stdlib tests/more.o tests/more tests/easter.o tests/easter tests/ctype.o tests/ctype tests/errno.o tests/errno tests/inttypes.o tests/inttypes tests/assert.o tests/assert src/wchar.o src/wctype.o src/locale.o src/math.o
+	rm -f libkawkaw.a $(LIB_OBJ) src/easter.o tests/all.o tests/all tests/hello.o tests/hello tests/stdio.o tests/stdio tests/headers.o tests/headers tests/verify.o tests/verify tests/stdlib.o tests/stdlib tests/more.o tests/more tests/easter.o tests/easter tests/ctype.o tests/ctype tests/errno.o tests/errno tests/inttypes.o tests/inttypes tests/assert.o tests/assert src/wchar.o src/wctype.o src/locale.o src/math.o src/complex.o src/signal.o src/time.o src/fenv.o src/setjmp.o src/arch/x86_64/setjmp.o src/uchar.o

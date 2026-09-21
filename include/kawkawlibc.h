@@ -60,6 +60,7 @@ int stat(const char *path, struct stat *st);
 __attribute__((__noreturn__)) void exit(int code);
 void *brk(void *addr);
 void *sbrk(intptr_t increment);
+int getpid(void);
 int fork(void);
 int execve(const char *path, char *const argv[], char *const envp[]);
 int wait4(pid_t pid, int *wstatus, int options, void *rusage);
@@ -88,6 +89,8 @@ int wait4(pid_t pid, int *wstatus, int options, void *rusage);
 #define SYS_gettid       186
 #define SYS_gettimeofday 96
 #define SYS_nanosleep    35
+#define SYS_time         13
+#define SYS_clock_gettime 228
 #define SYS_uname        63
 #define SYS_unlink       87
 #define SYS_rename       82
