@@ -19,3 +19,4 @@ testfile.txt
 libkawkaw.a
 AGENTS.md
 code.md
+*.core
