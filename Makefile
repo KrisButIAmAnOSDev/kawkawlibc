@@ -5,11 +5,6 @@ CFLAGS ?= -ffreestanding -fno-builtin -fno-stack-protector -nostdinc -Iinclude -
 ASM ?= gcc
 ASMFLAGS ?= -masm=intel
 
-ifeq ($(ARCH),arm64)
-  CFLAGS += -march=armv8-a
-  ASMFLAGS += -march=armv8-a
-endif
-
 LIB_OBJ := src/arch/x86_64/entry.o src/arch/x86_64/syscall.o src/syscall.o src/errno.o
 
 ifeq ($(ENABLE_STRING),1)
@@ -100,7 +95,7 @@ tests/all: tests/all.o libkawkaw.a
 	$(CC) -nostdlib -static -o $@ $< -L. -lkawkaw
 
 tests/easter: src/easter.o tests/easter.o libkawkaw.a
-	$(CC) -nostdlib -static -o $@ $^ -L. -lkawkaw
+	$(CC) -nostdlib -static $(if $(filter-out x86_64,$(ARCH)),-m32) -o $@ $^ -L. -lkawkaw
 
 src/easter.o: src/easter.c
 	$(CC) $(CFLAGS) -c -o $@ $<

@@ -440,9 +440,9 @@ static int test_headers_all(void)
     if (ECONNREFUSED != 111) { fail++; printf("errno ECONNREFUSED failed\n"); }
     /* wchar.h */
     if (WEOF != -1) { fail++; printf("wchar WEOF failed\n"); }
-    if (wcslen(L"abc") != 3) { fail++; printf("wcslen failed\n"); }
+    if (wcslen((const wchar_t *)L"abc") != 3) { fail++; printf("wcslen failed\n"); }
     /* wctype.h */
-    if (!iswalpha(L'a')) { fail++; printf("iswalpha failed\n"); }
+    if (!iswalpha((wint_t)L'a')) { fail++; printf("iswalpha failed\n"); }
     /* setjmp.h */
     if (sizeof(jmp_buf) > 0) {} /* just compile check */
     /* locale.h */
