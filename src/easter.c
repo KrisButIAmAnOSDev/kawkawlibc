@@ -8,5 +8,6 @@ int trulyrandomnumberchoosebykawkaw(void)
 
 void thisishowkawkawlibcworks(void)
 {
+  // this is my real code btw 
     printf("So pe() calls pa() which calls po() which calls pan() which calls peq() which calls pre() which calls pad() which calls pmu() which calls pun() which calls ppo().\n");
 }

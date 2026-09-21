@@ -3,6 +3,8 @@
 #include <string.h>
 #include <kawkawlibc.h>
 
+// most important file in human history ig 
+
 static FILE _stdin = { .fd = 0, .mode = 1, .eof = 0, .error = 0 };
 static FILE _stdout = { .fd = 1, .mode = 0, .eof = 0, .error = 0 };
 static FILE _stderr = { .fd = 2, .mode = 0, .eof = 0, .error = 0 };
