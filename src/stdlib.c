@@ -34,8 +34,8 @@ void *malloc(size_t size)
             *pp = blk->next;             /* unlink from free list */
             if (blk->size >= total + sizeof(block_t) + 16) {
                 /* split: carve off the tail into a new free block */
-                block_t *rem = (block_t *)((char *)blk + total);
-                rem->size = blk->size - total;
+                block_t *rem = (block_t *)((char *)blk + sizeof(block_t) + total);
+                rem->size = blk->size - total - sizeof(block_t);
                 rem->next = free_list;
                 free_list = rem;
             }
@@ -83,6 +83,23 @@ void *realloc(void *ptr, size_t size)
     block_t *hdr = (block_t *)ptr - 1;
     size_t old_size = hdr->size;
     if (old_size >= size) return ptr;   /* block already big enough */
+
+    /* try to extend in place by absorbing the next free block */
+    block_t **pp = &free_list;
+    while (*pp) {
+        block_t *fb = *pp;
+        if ((char *)hdr + sizeof(block_t) + old_size == (char *)fb) {
+            size_t avail = old_size + sizeof(block_t) + fb->size;
+            if (avail >= size) {
+                *pp = fb->next;
+                hdr->size = avail;
+                return ptr;
+            }
+            break;
+        }
+        pp = &fb->next;
+    }
+
     void *new_p = malloc(size);
     if (!new_p) return NULL;
     memcpy(new_p, ptr, old_size);
