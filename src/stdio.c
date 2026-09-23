@@ -33,44 +33,122 @@ static void put_int_fd(int fd, long long val)
     put_uint_fd(fd, uval, "0123456789", 10);
 }
 
+static void put_pad_fd(int fd, int n, char c)
+{
+    while (n-- > 0) put_char_fd(fd, c);
+}
+
 static void format_fd(int fd, const char *fmt, va_list ap)
 {
     for (const char *p = fmt; *p; p++) {
         if (*p != '%') { put_char_fd(fd, *p); continue; }
         p++;
+        int left = 0, zero = 0, width = 0, prec = -1;
+        for (;;) {
+            if (*p == '-') left = 1;
+            else if (*p == '0') zero = 1;
+            else break;
+            p++;
+        }
+        while (*p >= '0' && *p <= '9') { width = width * 10 + (*p - '0'); p++; }
+        if (*p == '.') { p++; prec = 0; while (*p >= '0' && *p <= '9') { prec = prec * 10 + (*p - '0'); p++; } }
         switch (*p) {
-        case 'c': { put_char_fd(fd, (char)va_arg(ap, int)); break; }
-        case 's': { const char *s = va_arg(ap, const char *); if (s) write(fd, s, strlen(s)); else write(fd, "(null)", 6); break; }
+        case 'c': {
+            char buf[1]; buf[0] = (char)va_arg(ap, int);
+            if (left) { write(fd, buf, 1); put_pad_fd(fd, width - 1, ' '); }
+            else { put_pad_fd(fd, width - 1, ' '); write(fd, buf, 1); }
+            break;
+        }
+        case 's': {
+            const char *s = va_arg(ap, const char *);
+            if (!s) s = "(null)";
+            int len = (int)strlen(s);
+            if (prec >= 0 && prec < len) len = prec;
+            if (left) { write(fd, s, len); put_pad_fd(fd, width - len, ' '); }
+            else { put_pad_fd(fd, width - len, ' '); write(fd, s, len); }
+            break;
+        }
         case 'l': {
             p++;
             if (*p == 'l') {
                 p++;
-                if (*p == 'd') { put_int_fd(fd, va_arg(ap, long long)); break; }
-                if (*p == 'u') { put_uint_fd(fd, va_arg(ap, unsigned long long), "0123456789", 10); break; }
-                if (*p == 'x') { put_uint_fd(fd, va_arg(ap, unsigned long long), "0123456789abcdef", 16); break; }
-                if (*p == 'X') { put_uint_fd(fd, va_arg(ap, unsigned long long), "0123456789ABCDEF", 16); break; }
-                put_char_fd(fd, '%'); put_char_fd(fd, 'l'); put_char_fd(fd, 'l'); put_char_fd(fd, *p);
+                unsigned long long v;
+                int neg = 0;
+                if (*p == 'd') { long long x = va_arg(ap, long long); if (x < 0) { neg = 1; v = (unsigned long long)(-x); } else v = (unsigned long long)x; }
+                else if (*p == 'u') { v = va_arg(ap, unsigned long long); }
+                else if (*p == 'x') { v = va_arg(ap, unsigned long long); }
+                else if (*p == 'X') { v = va_arg(ap, unsigned long long); }
+                else { put_char_fd(fd, '%'); put_char_fd(fd, 'l'); put_char_fd(fd, 'l'); put_char_fd(fd, *p); break; }
+                char tmp[32]; int i = 0; const char *digits = (*p == 'X') ? "0123456789ABCDEF" : (*p == 'x') ? "0123456789abcdef" : "0123456789";
+                if (v == 0) tmp[i++] = '0'; else while (v > 0) { tmp[i++] = digits[v % 10]; v /= 10; }
+                int len = i + (neg ? 1 : 0);
+                if (left) { if (neg) put_char_fd(fd, '-'); for (int k = i - 1; k >= 0; k--) put_char_fd(fd, tmp[k]); put_pad_fd(fd, width - len, ' '); }
+                else { put_pad_fd(fd, width - len, (zero && prec < 0) ? '0' : ' '); if (neg) put_char_fd(fd, '-'); for (int k = i - 1; k >= 0; k--) put_char_fd(fd, tmp[k]); }
                 break;
             }
-            if (*p == 'd') { put_int_fd(fd, va_arg(ap, long)); break; }
-            if (*p == 'u') { put_uint_fd(fd, va_arg(ap, unsigned long), "0123456789", 10); break; }
-            if (*p == 'x') { put_uint_fd(fd, va_arg(ap, unsigned long), "0123456789abcdef", 16); break; }
-            if (*p == 'X') { put_uint_fd(fd, va_arg(ap, unsigned long), "0123456789ABCDEF", 16); break; }
-            if (*p == 'z') {
-                size_t v = va_arg(ap, size_t);
-                char tmp[32]; int i = 0;
-                if (v == 0) { put_char_fd(fd, '0'); }
-                else { while (v > 0) { tmp[i++] = '0' + v % 10; v /= 10; } while (i > 0) put_char_fd(fd, tmp[--i]); }
-                break;
-            }
-            put_char_fd(fd, '%'); put_char_fd(fd, 'l'); put_char_fd(fd, *p);
+            unsigned long v;
+            int neg = 0;
+            if (*p == 'd') { long x = va_arg(ap, long); if (x < 0) { neg = 1; v = (unsigned long)(-x); } else v = (unsigned long)x; }
+            else if (*p == 'u') { v = va_arg(ap, unsigned long); }
+            else if (*p == 'x') { v = va_arg(ap, unsigned long); }
+            else if (*p == 'X') { v = va_arg(ap, unsigned long); }
+            else { put_char_fd(fd, '%'); put_char_fd(fd, 'l'); put_char_fd(fd, *p); break; }
+            char tmp[32]; int i = 0; const char *digits = (*p == 'X') ? "0123456789ABCDEF" : (*p == 'x') ? "0123456789abcdef" : "0123456789";
+            if (v == 0) tmp[i++] = '0'; else while (v > 0) { tmp[i++] = digits[v % 10]; v /= 10; }
+            int len = i + (neg ? 1 : 0);
+            if (left) { if (neg) put_char_fd(fd, '-'); for (int k = i - 1; k >= 0; k--) put_char_fd(fd, tmp[k]); put_pad_fd(fd, width - len, ' '); }
+            else { put_pad_fd(fd, width - len, (zero && prec < 0) ? '0' : ' '); if (neg) put_char_fd(fd, '-'); for (int k = i - 1; k >= 0; k--) put_char_fd(fd, tmp[k]); }
             break;
         }
-        case 'd': { put_int_fd(fd, va_arg(ap, int)); break; }
-        case 'u': { put_uint_fd(fd, va_arg(ap, unsigned int), "0123456789", 10); break; }
-        case 'x': { put_uint_fd(fd, va_arg(ap, unsigned int), "0123456789abcdef", 16); break; }
-        case 'X': { put_uint_fd(fd, va_arg(ap, unsigned int), "0123456789ABCDEF", 16); break; }
-        case 'p': { void *vp = va_arg(ap, void *); put_char_fd(fd, '0'); put_char_fd(fd, 'x'); put_uint_fd(fd, (unsigned long)vp, "0123456789abcdef", 16); break; }
+        case 'd': {
+            int x = va_arg(ap, int);
+            unsigned long long v; int neg = 0;
+            if (x < 0) { neg = 1; v = (unsigned long long)(-x); } else v = (unsigned long long)x;
+            char tmp[32]; int i = 0;
+            if (v == 0) tmp[i++] = '0'; else while (v > 0) { tmp[i++] = '0' + v % 10; v /= 10; }
+            int len = i + (neg ? 1 : 0);
+            if (left) { if (neg) put_char_fd(fd, '-'); for (int k = i - 1; k >= 0; k--) put_char_fd(fd, tmp[k]); put_pad_fd(fd, width - len, ' '); }
+            else { put_pad_fd(fd, width - len, (zero && prec < 0) ? '0' : ' '); if (neg) put_char_fd(fd, '-'); for (int k = i - 1; k >= 0; k--) put_char_fd(fd, tmp[k]); }
+            break;
+        }
+        case 'u': {
+            unsigned long long v = va_arg(ap, unsigned int);
+            char tmp[32]; int i = 0;
+            if (v == 0) tmp[i++] = '0'; else while (v > 0) { tmp[i++] = '0' + v % 10; v /= 10; }
+            int len = i;
+            if (left) { for (int k = i - 1; k >= 0; k--) put_char_fd(fd, tmp[k]); put_pad_fd(fd, width - len, ' '); }
+            else { put_pad_fd(fd, width - len, (zero && prec < 0) ? '0' : ' '); for (int k = i - 1; k >= 0; k--) put_char_fd(fd, tmp[k]); }
+            break;
+        }
+        case 'x': {
+            unsigned long long v = va_arg(ap, unsigned int);
+            char tmp[32]; int i = 0;
+            if (v == 0) tmp[i++] = '0'; else while (v > 0) { tmp[i++] = "0123456789abcdef"[v % 16]; v /= 16; }
+            int len = i;
+            if (left) { for (int k = i - 1; k >= 0; k--) put_char_fd(fd, tmp[k]); put_pad_fd(fd, width - len, ' '); }
+            else { put_pad_fd(fd, width - len, (zero && prec < 0) ? '0' : ' '); for (int k = i - 1; k >= 0; k--) put_char_fd(fd, tmp[k]); }
+            break;
+        }
+        case 'X': {
+            unsigned long long v = va_arg(ap, unsigned int);
+            char tmp[32]; int i = 0;
+            if (v == 0) tmp[i++] = '0'; else while (v > 0) { tmp[i++] = "0123456789ABCDEF"[v % 16]; v /= 16; }
+            int len = i;
+            if (left) { for (int k = i - 1; k >= 0; k--) put_char_fd(fd, tmp[k]); put_pad_fd(fd, width - len, ' '); }
+            else { put_pad_fd(fd, width - len, (zero && prec < 0) ? '0' : ' '); for (int k = i - 1; k >= 0; k--) put_char_fd(fd, tmp[k]); }
+            break;
+        }
+        case 'p': {
+            unsigned long long v = (unsigned long long)(unsigned long)va_arg(ap, void *);
+            char tmp[32]; int i = 0;
+            if (v == 0) { write(fd, "(nil)", 5); break; }
+            tmp[i++] = '0'; tmp[i++] = 'x';
+            int s = i; while (v > 0) { tmp[i++] = "0123456789abcdef"[v % 16]; v /= 16; }
+            int len = i;
+            if (left) { for (int k = s; k < i; k++) put_char_fd(fd, tmp[k]); put_pad_fd(fd, width - len, ' '); }
+            else { put_pad_fd(fd, width - len, ' '); for (int k = s; k < i; k++) put_char_fd(fd, tmp[k]); }
+            break;
+        }
         case 'z': {
             p++;
             if (*p == 'u') {
