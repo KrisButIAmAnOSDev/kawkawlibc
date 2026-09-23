@@ -1,1 +1,9 @@
+*.o
+*.a
+*.so
+tests/all
+tests/easter
 out.bmp
+testfile.txt
+renderer
+renderer.c
