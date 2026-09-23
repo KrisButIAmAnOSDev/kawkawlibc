@@ -686,3 +686,26 @@ FILE *fdopen(int fd, const char *mode)
     _fdopen_file.pushback = 0;
     return &_fdopen_file;
 }
+
+int fclose(FILE *stream)
+{
+    if (!stream) return -1;
+    if (stream->fd >= 3) close(stream->fd);
+    stream->fd = -1;
+    stream->eof = 0;
+    stream->error = 0;
+    return 0;
+}
+
+FILE *fopen(const char *path, const char *mode)
+{
+    int flags = 0;
+    if (mode[0] == 'r') flags = O_RDONLY;
+    else if (mode[0] == 'w') flags = O_WRONLY | O_CREAT | O_TRUNC;
+    else if (mode[0] == 'a') flags = O_WRONLY | O_CREAT | O_APPEND;
+    else return NULL;
+    if (mode[1] == '+') flags = (flags & ~(O_RDONLY | O_WRONLY)) | O_RDWR;
+    int fd = open(path, flags, 0666);
+    if (fd < 0) return NULL;
+    return fdopen(fd, mode);
+}

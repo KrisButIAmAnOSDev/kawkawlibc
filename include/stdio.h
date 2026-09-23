@@ -50,6 +50,7 @@ int feof(FILE *stream);
 int ferror(FILE *stream);
 void clearerr(FILE *stream);
 int fflush(FILE *stream);
+int fclose(FILE *stream);
 
 void perror(const char *s);
 
@@ -69,6 +70,7 @@ int vfscanf(FILE *stream, const char *fmt, va_list ap);
 
 int fileno(FILE *stream);
 FILE *fdopen(int fd, const char *mode);
+FILE *fopen(const char *path, const char *mode);
 
 #endif
 

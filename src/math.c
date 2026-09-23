@@ -34,9 +34,56 @@ long double floorl(long double x);
 long double fmodl(long double x, long double y);
 long double powl(long double x, long double y);
 
+double round(double x);
+float roundf(float x);
+long double roundl(long double x);
+double trunc(double x);
+float truncf(float x);
+long double truncl(long double x);
+
+double fmin(double x, double y) { return x < y ? x : y; }
+double fmax(double x, double y) { return x > y ? x : y; }
+float fminf(float x, float y) { return x < y ? x : y; }
+float fmaxf(float x, float y) { return x > y ? x : y; }
+long double fminl(long double x, long double y) { return x < y ? x : y; }
+long double fmaxl(long double x, long double y) { return x > y ? x : y; }
+
 double fabs(double x) { return x < 0 ? -x : x; }
 float fabsf(float x) { return x < 0 ? -x : x; }
 long double fabsl(long double x) { return x < 0 ? -x : x; }
+
+double round(double x)
+{
+    double t = (double)(long long)x;
+    double frac = x - t;
+    if (frac >= 0.5) t += 1.0;
+    else if (frac <= -0.5) t -= 1.0;
+    return t;
+}
+
+float roundf(float x)
+{
+    float t = (float)(long long)x;
+    float frac = x - t;
+    if (frac >= 0.5f) t += 1.0f;
+    else if (frac <= -0.5f) t -= 1.0f;
+    return t;
+}
+
+long double roundl(long double x)
+{
+    long double t = (long double)(long long)x;
+    long double frac = x - t;
+    if (frac >= 0.5L) t += 1.0L;
+    else if (frac <= -0.5L) t -= 1.0L;
+    return t;
+}
+
+double trunc(double x) { return (double)(long long)x; }
+
+float truncf(float x) { return (float)(long long)x; }
+
+long double truncl(long double x) { return (long double)(long long)x; }
 
 double sqrt(double x)
 {
